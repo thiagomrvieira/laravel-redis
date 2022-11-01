@@ -15,5 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return Redis::incr('visits');
+    $visits =  Redis::incr('visits');
+
+    // return view('welcome', ['visits' => $visits]);
+    return view('welcome')->withVisits($visits);
 });

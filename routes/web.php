@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Article;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 
@@ -49,25 +50,50 @@ use Illuminate\Support\Facades\Route;
 // ---------------------------------------------------------------
 
 // Hashes and Caching
-Route::get('/', function () {
+// Route::get('/', function () {
     
-    $user2Stats = [
-        'favorites'   => 20,
-        'watchers'    => 50, 
-        'completions' => 45
-    ];
+//     $user2Stats = [
+//         'favorites'   => 20,
+//         'watchers'    => 50, 
+//         'completions' => 45
+//     ];
 
-    Redis::hmset('user.2.stats', $user2Stats);
+//     Redis::hmset('user.2.stats', $user2Stats);
 
-    return Redis::hgetall('user.1.stats');
+//     return Redis::hgetall('user.1.stats');
 
-});
+// });
 
-Route::get('/users/{id}/stats', function ($id) {
-    return Redis::hgetall("user.{$id}.stats");
-});
+// Route::get('/users/{id}/stats', function ($id) {
+//     return Redis::hgetall("user.{$id}.stats");
+// });
 
-Route::get('/favorite-video', function () {
-    Redis::hincrby('user.1.stats', 'favorites', 1);
-    return redirect('/');
+// Route::get('/favorite-video', function () {
+//     Redis::hincrby('user.1.stats', 'favorites', 1);
+//     return redirect('/');
+// });
+
+// Caching
+
+// function remember($key, $minutes, $callback) {
+//     if ($value = Redis::get($key)) {
+//         return json_decode($value);
+//     }
+
+//     Redis::setex($key, $minutes, $value = $callback());
+
+//     return $value;
+// }
+
+Route::get('/articles', function () {
+   
+    // return remember('articles.all', 60 * 60, function (){
+    //     return Article::all();
+    // });  
+
+    return Cache::remember('articles.all', 60 * 60, function (){
+        dd('epha');
+        return Article::all();
+    });  
+
 });

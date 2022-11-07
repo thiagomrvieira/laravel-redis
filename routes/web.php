@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Article;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
@@ -85,15 +86,41 @@ use Illuminate\Support\Facades\Route;
 //     return $value;
 // }
 
-Route::get('/articles', function () {
-   
-    // return remember('articles.all', 60 * 60, function (){
-    //     return Article::all();
-    // });  
+interface Articles 
+{
+    public function all();
+}
 
-    return Cache::remember('articles.all', 60 * 60, function (){
-        dd('epha');
+#   DECORATOR PATHERN
+class CachableArticles implements Articles
+{   
+    protected $articles;
+
+    public function __construct($articles) {
+        $this->articles = $articles;
+    }
+
+    public function all()
+    {
+        // Cache::forget('articles.all');
+        return Cache::remember('articles.all', 60 * 60, function (){
+            return $this->articles->all();
+        });  
+    }
+}
+
+class EloquentArticles implements Articles
+{
+    public function all()
+    {
         return Article::all();
-    });  
+    }
+}
 
+App::bind('Articles', function() {
+   return new CachableArticles(new EloquentArticles);
+});
+
+Route::get('/articles', function (Articles $articles) {
+   return $articles->all();
 });
